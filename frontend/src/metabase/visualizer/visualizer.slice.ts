@@ -41,6 +41,7 @@ import {
   isDraggedColumnItem,
   isDraggedWellItem,
 } from "./utils";
+import { DRILLS } from "metabase/querying/drills/utils/constants";
 
 const initialState: VisualizerState = {
   display: null,
@@ -112,6 +113,8 @@ const visualizerSlice = createSlice({
         cartesianDropHandler(state, event);
       } else if (state.display === "funnel") {
         funnelDropHandler(state, event);
+      } else if (state.display === "pie") {
+        pieDropHandler(state, event);
       }
     },
     setDisplay: (state, action: PayloadAction<VisualizationDisplay | null>) => {
@@ -468,6 +471,30 @@ export const getVisualizerComputedSettings = createSelector(
 );
 
 type DropHandler = (state: VisualizerState, event: DragEndEvent) => void;
+
+const pieDropHandler: DropHandler = (state, { active, over }) => {
+  if (!over) {
+    return;
+  }
+
+  /* a pie will have the following drop targets / wells
+  // metric
+  // dimension
+
+  */
+  if (over.id === DROPPABLE_ID.PIE_METRIC) {
+    console.log("you're about to drop on the pie metric");
+  }
+
+  // primary dimension
+  // additional rings (turns into a sunburst)
+  // do we want to handle that via multiple drops or with specific wells?
+  if (over.id === DROPPABLE_ID.PIE_DIMENSION) {
+    console.log("you're about to drop on the pie dimension");
+  }
+
+  // */
+};
 
 const cartesianDropHandler: DropHandler = (state, { active, over }) => {
   if (!over) {
