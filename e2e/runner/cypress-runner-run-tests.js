@@ -23,7 +23,7 @@ const runCypress = async (baseUrl, exitFunction) => {
 
   const defaultConfig = {
     browser: "chrome",
-    configFile: "e2e/support/cypress-embedding-sdk-component-test.config.js",
+    configFile: "e2e/support/cypress.config.js",
     config: {
       baseUrl,
     },

@@ -1,6 +1,5 @@
 const fs = require("fs");
 
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 const webpack = require("webpack");
 
@@ -12,6 +11,7 @@ module.exports = {
   mode: "development",
   devtool: false,
   resolve: {
+    extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".svg"],
     alias: {
       ...mainConfig.resolve.alias,
       ...(!isEmbeddingSdkPackageInstalled
@@ -23,6 +23,7 @@ module.exports = {
           }
         : null),
     },
+    fallback: { path: false, fs: false }, // FIXME: this might break file download tests, we might need to implement this properly
   },
   entry: [path.join(__dirname, "src", "index.js")],
   output: {
@@ -35,6 +36,24 @@ module.exports = {
         use: ["style-loader", "css-loader"],
       },
       {
+        test: /\.svg/,
+        type: "asset/source",
+        resourceQuery: { not: [/component/] }, // *.svg?source
+      },
+      {
+        test: /\.svg$/i,
+        issuer: /\.[jt]sx?$/,
+        resourceQuery: /component/, // *.svg?component
+        use: [
+          {
+            loader: "@svgr/webpack",
+            options: {
+              ref: true,
+            },
+          },
+        ],
+      },
+      {
         test: /\.(tsx?|jsx?)$/,
         exclude: /node_modules/,
         use: {
@@ -45,15 +64,14 @@ module.exports = {
               "@babel/preset-react",
               "@babel/preset-typescript",
             ],
+            targets: "last 5 Chrome versions",
+            configFile: false,
           },
         },
       },
     ],
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, "public", "index.html"),
-    }),
     new webpack.ProvidePlugin({
       React: "react",
     }),

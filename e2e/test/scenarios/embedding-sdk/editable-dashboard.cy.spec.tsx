@@ -3,15 +3,18 @@ import {
   MetabaseProvider,
 } from "@metabase/embedding-sdk-react"; // eslint-disable-line import/no-unresolved
 
-import { restore, setTokenFeatures } from "e2e/support/helpers";
+import { describeEE, restore, setTokenFeatures } from "e2e/support/helpers";
 import {
   JWT_PROVIDER_URL,
   METABASE_INSTANCE_URL,
+  mockJwtProvider,
 } from "e2e/support/helpers/e2e-embedding-sdk-helpers";
 import { setupJwt } from "e2e/support/helpers/e2e-jwt-helpers";
 
-describe.skip("scenarios > embedding-sdk > editable-dashboard", () => {
+describeEE("scenarios > embedding-sdk > editable-dashboard", () => {
   beforeEach(() => {
+    Cypress.config("baseUrl", METABASE_INSTANCE_URL);
+
     restore();
     cy.signInAsAdmin();
     setTokenFeatures("all");
@@ -29,6 +32,7 @@ describe.skip("scenarios > embedding-sdk > editable-dashboard", () => {
 
     cy.signOut();
 
+    mockJwtProvider();
     cy.intercept("GET", "/api/dashboard/*").as("getDashboard");
     cy.intercept("GET", "/api/user/current").as("getUser");
     cy.intercept("POST", "/api/dashboard/*/dashcard/*/card/*/query").as(
@@ -50,10 +54,14 @@ describe.skip("scenarios > embedding-sdk > editable-dashboard", () => {
       );
     });
 
-    cy.get("#metabase-sdk-root")
-      .findByText("Edited a few seconds ago by Bobby Tables")
-      .click()
-      .should("be.visible");
+    cy.get("#metabase-sdk-root").within(() => {
+      cy.findByTestId("dashboard-name-heading").realHover();
+
+      cy.findByText("Edited a few seconds ago by you")
+        .click()
+        .should("be.visible");
+    });
+
     cy.findByRole("heading", { name: "Info" }).should("not.exist");
     cy.findByRole("tab", { name: "Overview" }).should("not.exist");
     cy.findByRole("tab", { name: "History" }).should("not.exist");

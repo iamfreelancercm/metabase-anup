@@ -1,3 +1,5 @@
 const { embeddingSdkComponentTestConfig } = require("./config");
 
-module.exports = { component: embeddingSdkComponentTestConfig };
+module.exports = {
+  component: embeddingSdkComponentTestConfig,
+};
