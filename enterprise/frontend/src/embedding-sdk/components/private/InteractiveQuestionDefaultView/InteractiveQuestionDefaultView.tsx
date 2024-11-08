@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import { useDisclosure } from "@mantine/hooks";
 import cx from "classnames";
 import { type ReactElement, type ReactNode, useState } from "react";
@@ -11,7 +9,7 @@ import {
   SdkLoader,
 } from "embedding-sdk/components/private/PublicComponentWrapper";
 import { SaveQuestionModal } from "metabase/containers/SaveQuestionModal";
-import { ActionIcon, Title, Button, Group, Icon, Popover } from "metabase/ui";
+import { Box, Button, Group, Icon } from "metabase/ui";
 
 import { InteractiveQuestion } from "../../public/InteractiveQuestion";
 import { useInteractiveQuestionContext } from "../InteractiveQuestion/context";
@@ -21,7 +19,6 @@ import {
 } from "../util/FlexibleSizeComponent";
 
 import InteractiveQuestionS from "./InteractiveQuestionResult.module.css";
-import { getIconForVisualizationType } from "metabase/visualizations";
 
 export interface InteractiveQuestionResultProps {
   withResetButton?: boolean;
@@ -81,8 +78,6 @@ export const InteractiveQuestionDefaultView = ({
   const [isSaveModalOpen, { open: openSaveModal, close: closeSaveModal }] =
     useDisclosure(false);
 
-  const [isNotebookOpen, { open, close, toggle }] = useDisclosure(false);
-
   if (isQuestionLoading) {
     return <SdkLoader />;
   }
@@ -98,78 +93,91 @@ export const InteractiveQuestionDefaultView = ({
       className={cx(InteractiveQuestionS.Container, className)}
       style={style}
     >
-      <Group position="apart" align="center">
-        <Group>
-          <Title order={5}>{question?.displayName() ?? t`New Question`}</Title>
-        </Group>
-        <Group>
-          {!isNotebookOpen && (
-            <>
-              <Popover>
-                <Popover.Target>
-                  <Button compact>Filter</Button>
-                </Popover.Target>
-                <Popover.Dropdown h="30vh">
-                  <InteractiveQuestion.Filter />
-                </Popover.Dropdown>
-              </Popover>
-              <Popover>
-                <Popover.Target>
-                  <Button compact>See filters</Button>
-                </Popover.Target>
-                <Popover.Dropdown h="30vh">
-                  <InteractiveQuestion.FilterBar />
-                </Popover.Dropdown>
-              </Popover>
-              <Popover>
-                <Popover.Target>
-                  <Button compact>Summarize</Button>
-                </Popover.Target>
-                <Popover.Dropdown h="50vh">
-                  <InteractiveQuestion.Summarize />
-                </Popover.Dropdown>
-              </Popover>
-              <Popover>
-                <Popover.Target>
-                  <Button compact>Breakout</Button>
-                </Popover.Target>
-                <Popover.Dropdown h="30vh">
-                  <InteractiveQuestion.Breakout />
-                </Popover.Dropdown>
-              </Popover>
-              <Popover>
-                <Popover.Target>
-                  <ActionIcon>
-                    <Icon
-                      name={getIconForVisualizationType(question.display())}
-                    />
-                  </ActionIcon>
-                </Popover.Target>
-                <Popover.Dropdown h="30vh">
-                  <InteractiveQuestion.ChartTypeSelector />
-                </Popover.Dropdown>
-              </Popover>
-              <Popover>
-                <Popover.Target>
-                  <ActionIcon>
-                    <Icon name="gear" />
-                  </ActionIcon>
-                </Popover.Target>
-                <Popover.Dropdown h="30vh">
-                  <InteractiveQuestion.QuestionSettings />
-                </Popover.Dropdown>
-              </Popover>
-            </>
+      <Group className={InteractiveQuestionS.TopBar} position="apart" p="md">
+        <InteractiveQuestion.BackButton />
+        {withTitle && (customTitle ?? <InteractiveQuestion.Title />)}
+        <Group spacing="xs">
+          {withResetButton && <InteractiveQuestion.ResetButton />}
+          <InteractiveQuestion.FilterButton
+            onClick={() =>
+              setQuestionView(
+                questionView === "filter" ? "visualization" : "filter",
+              )
+            }
+          />
+          <InteractiveQuestion.SummarizeButton
+            onOpen={() => setQuestionView("summarize")}
+            onClose={() => setQuestionView("visualization")}
+            isOpen={questionView === "summarize"}
+          />
+          <InteractiveQuestion.EditorButton
+            isOpen={questionView === "editor"}
+            onClick={() =>
+              setQuestionView(
+                questionView === "editor" ? "visualization" : "editor",
+              )
+            }
+          />
+
+          {isSaveEnabled && !isSaveModalOpen && (
+            <InteractiveQuestion.SaveButton onClick={openSaveModal} />
           )}
-          <ActionIcon onClick={toggle}>
-            <Icon name="notebook" />
-          </ActionIcon>
         </Group>
       </Group>
-      {isNotebookOpen ? (
-        <InteractiveQuestion.Notebook onApply={close} />
-      ) : (
-        <InteractiveQuestion.QuestionVisualization height="100%" />
+
+      <Group className={InteractiveQuestionS.MidBar} py={0} px="md">
+        {questionView === "visualization" && (
+          <Button
+            compact
+            radius="xl"
+            py="sm"
+            px="md"
+            variant="filled"
+            color="brand"
+            onClick={toggleChartTypeSelector}
+          >
+            <Group>
+              <Icon
+                name={
+                  questionView === "visualization"
+                    ? "arrow_left"
+                    : "arrow_right"
+                }
+              />
+              <Icon name="eye" />
+            </Group>
+          </Button>
+        )}
+        <Box style={{ flex: 1 }}>
+          <InteractiveQuestion.FilterBar />
+        </Box>
+      </Group>
+      <Box className={InteractiveQuestionS.Main} p="md" w="100%" h="100%">
+        <Box className={InteractiveQuestionS.ChartTypeSelector}>
+          {isChartSelectorOpen && questionView === "visualization" ? (
+            <InteractiveQuestion.ChartTypeSelector />
+          ) : null}
+        </Box>
+        <Box className={InteractiveQuestionS.Content}>
+          <ContentView
+            questionView={questionView}
+            onReturnToVisualization={() => setQuestionView("visualization")}
+          />
+        </Box>
+      </Box>
+
+      {/* Refer to the SaveQuestionProvider for context on why we have to do it like this */}
+      {isSaveEnabled && isSaveModalOpen && question && (
+        <SaveQuestionModal
+          question={question}
+          originalQuestion={originalQuestion ?? null}
+          opened
+          closeOnSuccess
+          onClose={closeSaveModal}
+          onCreate={onCreate}
+          onSave={onSave}
+          saveToCollectionId={saveToCollectionId}
+        />
       )}
     </FlexibleSizeComponent>
   );

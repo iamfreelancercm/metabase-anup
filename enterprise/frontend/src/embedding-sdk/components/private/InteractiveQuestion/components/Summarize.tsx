@@ -139,6 +139,12 @@ const SummarizeInner = ({
           );
         })}
         <Button
+          variant={
+            currentAggregation.aggregationIndex === undefined &&
+            !currentAggregation.aggregation
+              ? "filled"
+              : "default"
+          }
           onClick={() => {
             setCurrentAggregation({
               aggregation: undefined,

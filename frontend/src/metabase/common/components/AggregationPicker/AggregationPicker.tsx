@@ -77,7 +77,7 @@ export function AggregationPicker({
   operators,
   allowCustomExpressions = false,
   allowTemporalComparisons = false,
-  onClose,
+  onClose: propOnClose,
   onQueryChange,
 }: AggregationPickerProps) {
   const question = useSelector(getQuestion);
@@ -93,6 +93,11 @@ export function AggregationPicker({
     isExpressionEditorInitiallyOpen(query, stageIndex, clause, operators),
   );
   const [isComparing, setIsComparing] = useState(false);
+
+  const onClose = useCallback(() => {
+    setOperator(null);
+    propOnClose?.();
+  }, [propOnClose]);
 
   // For really simple inline expressions like Average([Price]),
   // MLv2 can figure out that "Average" operator is used.
