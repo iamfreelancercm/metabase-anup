@@ -1,11 +1,13 @@
 name: Backend
 
 on:
-  workflow_run:
-    workflows: ["Unit Test"]
-    types: completed
-    branches: 
-      - anup
+    workflow_run:
+      workflows: 
+        - "UnitTest"
+      types: 
+        - completed
+      branches: 
+        - anup
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref && github.ref || github.run_id }}
   cancel-in-progress: true
@@ -267,3 +269,4 @@ jobs:
           m2-cache-key: 'cljfmt'
       - name: Run cljfmt
         run: clojure -T:cljfmt check
+        #
