@@ -1,0 +1,16 @@
+name: Unit Test
+
+on:
+  push:
+    branches:
+      - anup
+  pull_request:
+    branches:
+      - anup
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        run: echo "hello github action"  
