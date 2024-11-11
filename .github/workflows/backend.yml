@@ -3,8 +3,7 @@ name: Backend
 on:
   workflow_run:
     workflows: ["Unit Test"]
-    types:
-      - completed
+    types: completed
     branches: 
       - anup
 concurrency:
