@@ -6,6 +6,8 @@ on:
       - "anup"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, labeled]
+    branches: 
+      - "anup"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref && github.ref || github.run_id }}
